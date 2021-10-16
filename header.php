@@ -7,7 +7,7 @@
 <body>
 
 <?php
-$link = mysqli_connect ('localhost', 'gtfs', 'gtfs', 'SZDC');
+$link = mysqli_connect ('localhost', 'root', 'root', 'vlaky');
 if (!$link) {
 	echo "Error: Unable to connect to MySQL.".PHP_EOL;
 	echo "Debugging errno: ".mysqli_connect_errno ().PHP_EOL;

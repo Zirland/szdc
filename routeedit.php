@@ -9,8 +9,8 @@ function getContrastYIQ ($hexcolor){
 	return ($yiq >= 128) ? '000000' : 'FFFFFF';
 }
 
-$route = $_GET['id'];
-$action = $_POST['action'];
+$route = @$_GET['id'];
+$action = @$_POST['action'];
 
 switch ($action) {
 	case "oprav" :
@@ -63,25 +63,6 @@ echo "</select></td><td style=\"background-color : #$route_color;\">Linka: <inpu
 echo "<input type=\"text\" name=\"kraj\" size=\"1\" value=\"$route_kraj\"><br />";
 echo "<input type=\"text\" name=\"longname\" value=\"$route_long_name\"></td>";
 
-echo "<td>Pozadí: <select name=\"route_pozadi\">";
-
-$query37 = "SELECT color, popis FROM kango.colors;";
-if ($result37 = mysqli_query ($link, $query37)) {
-	while ($row37 = mysqli_fetch_row ($result37)) {
-		$rtclr = $row37[0];
-		$clrnm = $row37[1];
-
-		echo "<option value=\"$rtclr\"";
-		if ($rtclr == $route_color) {
-			echo " SELECTED";
-		}
-		echo ">$clrnm</option>";
-	}
-}
-
-echo "</select><br />";
-
-echo "<input type=\"text\" name=\"foreground\" value=\"$route_text_color\"></td>";
 echo "<td>Aktivní <input type=\"checkbox\" name=\"aktif\" value=\"1\"";
 if ($route_active == '1') {
 	echo " CHECKED";
@@ -92,15 +73,15 @@ echo "<table>";
 echo "<tr><th>Linky odchozí</th><th>Linky příchozí</th></tr>";
 echo "<tr><td>";
 
-$query80 = "SELECT * FROM trip WHERE ((route_id = '$route_id') AND (direction_id = '0')) ORDER BY trip_id;";
+$query80 = "SELECT trip_id,trip_headsign,active FROM trip WHERE ((route_id = '$route_id') AND (direction_id = '0')) ORDER BY trip_id;";
 if ($result80 = mysqli_query ($link, $query80)) {
 	$count = mysqli_num_rows($result80);
 	echo "$count<br/>";
 	while ($row80 = mysqli_fetch_row ($result80)) {
-		$trip_id = $row80[2];
-		$trip_headsign = $row80[3];
+		$trip_id = $row80[0];
+		$trip_headsign = $row80[1];
 		$vlak = substr($trip_id, 0, -8);
-		$trip_aktif = $row80[9];
+		$trip_aktif = $row80[2];
 
 		$query15 = "SELECT stop_name FROM stop WHERE stop_id IN (SELECT stop_id FROM stoptime WHERE trip_id = '$trip_id' AND stop_sequence IN (SELECT min(stop_sequence) FROM stoptime WHERE (trip_id = '$trip_id')));";
 		$result15 = mysqli_query ($link, $query15);
@@ -132,15 +113,15 @@ if ($result80 = mysqli_query ($link, $query80)) {
 }
 echo "</td><td>";
 
-$query96 = "SELECT * FROM trip WHERE ((route_id = '$route_id') AND (direction_id = '1')) ORDER BY trip_id;";
+$query96 = "SELECT trip_id, trip_headsign, active FROM trip WHERE ((route_id = '$route_id') AND (direction_id = '1')) ORDER BY trip_id;";
 if ($result96 = mysqli_query ($link, $query96)) {
 	$count = mysqli_num_rows($result96);
 	echo "$count<br/>";
 	while ($row96 = mysqli_fetch_row ($result96)) {
-		$trip_id = $row96[2];
-		$trip_headsign = $row96[3];
+		$trip_id = $row96[0];
+		$trip_headsign = $row96[1];
 		$vlak = substr($trip_id, 0, -8);
-		$trip_aktif = $row96[9];
+		$trip_aktif = $row96[2];
 
 		$query15 = "SELECT stop_name FROM stop WHERE stop_id IN (SELECT stop_id FROM stoptime WHERE trip_id = '$trip_id' AND stop_sequence IN (SELECT min(stop_sequence) FROM stoptime WHERE (trip_id = '$trip_id')));";
 		$result15 = mysqli_query ($link, $query15);
