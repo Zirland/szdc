@@ -13,16 +13,10 @@ $query11 = "DELETE FROM jizdy WHERE datum<'$dnes';";
 //echo "13: $query11<br/>";
 $prikaz11 = mysqli_query($link, $query11);
 
-$query16 = "SELECT id FROM break LEFT OUTER JOIN (SELECT MAX(id) as RowId, vlak, stop_id FROM break GROUP BY vlak, stop_id) as KeepRows ON break.id = KeepRows.RowId WHERE KeepRows.RowId IS NULL;";
-if ($result16 = mysqli_query($link, $query16)) {
-	while ($row16 = mysqli_fetch_row($result16)) {
-		$id = $row16[0];
+$query16 = "DELETE FROM stoptime WHERE arrival_time = '0' OR departure_time = '0';";
+//echo "13: $query16<br/>";
+$prikaz16 = mysqli_query($link, $query16);
 
-		$query45 = "DELETE FROM break WHERE id = '$id';";
-//		echo "22: $query45<br/>";
-		$prikaz45 = mysqli_query($link, $query45);
-	}
-}
 
 $query40 = "SELECT id FROM jizdy LEFT OUTER JOIN (SELECT MAX(id) as RowId, shortname, datum FROM jizdy GROUP BY shortname, datum) as KeepRows ON jizdy.id = KeepRows.RowId WHERE KeepRows.RowId IS NULL;";
 if ($result40 = mysqli_query($link, $query40)) {
@@ -76,30 +70,11 @@ $query37 = "DELETE FROM stoptime WHERE stop_id IN (SELECT stop_id FROM stop WHER
 //echo "54: $query37<br/>";
 $prikaz37 = mysqli_query($link, $query37);
 
-$query50 = "SELECT trip_id FROM trip WHERE route_id = 'K';";
-if ($result50 = mysqli_query($link, $query50)) {
-	while ($row50 = mysqli_fetch_row($result50)) {
-		$trip_id = $row50[0];
-
-		$query55 = "DELETE FROM stoptime WHERE trip_id = '$trip_id';";
-		echo "$query55<br/>";
-		$prikaz55 = mysqli_query($link, $query55);
-
-		$query58 = "DELETE FROM jizdy WHERE trip_id = '$trip_id';";
-		echo "$query58<br/>";
-		$prikaz58 = mysqli_query($link, $query58);
-
-		$query61 = "DELETE FROM trip WHERE trip_id = '$trip_id';";
-		echo "$query61<br/>";
-		$prikaz61 = mysqli_query($link, $query61);
-	}
-}
-
-$query66 = "DELETE FROM route WHERE route_id = 'K';";
-$prikaz66 = mysqli_query($link, $query66);
-
 $query69 = "DELETE FROM log WHERE datumdo<'$dnessrt';";
 $prikaz69 = mysqli_query($link, $query69);
+
+$query98 = "DELETE FROM log WHERE shortname='';";
+$prikaz98 = mysqli_query($link, $query98);
 
 $query79 = "DELETE FROM route WHERE route_id LIKE 'K%' AND active=0;";
 $prikaz79 = mysqli_query($link, $query79);

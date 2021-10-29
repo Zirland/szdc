@@ -263,7 +263,7 @@ foreach ($Locations as $lokace) {
 
     $query214 = "INSERT INTO stoptime (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled, timepoint) VALUES ('$trip_id','$prijezd','$odjezd','$stop_id','$seq', '','$nastup','$vystup',0,0);";
     if ((($TrainActivity == "CZ02" || $TrainActivity == "0030" || $TrainActivity == "0001") || ($Dwell > 0)) && ($train_type == "11" || $train_type == "C1" || $train_type == "C2" || $train_type == "C3")) {
-        $prikaz214 = mysqli_query($link, $query214);
+        echo "$query214 = $LocName<br/>";
     }
     $headsign = $LocName;
 
@@ -272,15 +272,15 @@ foreach ($Locations as $lokace) {
         $triplist[]    = $prev_trip_id;
         $prev_route_id = "K" . $prev_trip_id;
         $query284      = "DELETE FROM trip WHERE trip_id='$prev_trip_id';";
-        $prikaz284     = mysqli_query($link, $query284);
-        $query223      = "INSERT INTO trip (route_id, trip_id, trip_headsign, direction_id, shape_id, wheelchair_accessible, bikes_allowed, active, train_no) VALUES ('$prev_route_id', '$prev_trip_id', '$headsign', '$odd', '$trasa','0', '0', '1', '$newtrip');";
-        $prikaz223     = mysqli_query($link, $query223);
+        echo "$query284<br/>";
+        $query223 = "INSERT INTO trip (route_id, trip_id, trip_headsign, direction_id, shape_id, wheelchair_accessible, bikes_allowed, active, train_no) VALUES ('$prev_route_id', '$prev_trip_id', '$headsign', '$odd', '$trasa','0', '0', '1', '$newtrip');";
+        echo "$query223<br/>";
 
-        $query295  = "INSERT INTO stoptime (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled, timepoint) VALUES ('$prev_trip_id','$prijezd','$odjezd','$stop_id','$seq', '','$nastup','$vystup',0,0);";
-        $prikaz295 = mysqli_query($link, $query295);
+        $query295 = "INSERT INTO stoptime (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled, timepoint) VALUES ('$prev_trip_id','$prijezd','$odjezd','$stop_id','$seq', '','$nastup','$vystup',0,0);";
+        echo "$query295 = $LocName<br/>";
 
-        $query298  = "UPDATE trip SET trip_headsign = '$headsign' WHERE trip_id = '$prev_trip_id';";
-        $prikaz295 = mysqli_query($link, $query298);
+        $query298 = "UPDATE trip SET trip_headsign = '$headsign' WHERE trip_id = '$prev_trip_id';";
+        echo "$query298<br/>";
 
         $trasa = "$stop_id|";
 
@@ -304,9 +304,9 @@ $newtrip = preg_replace('/\D+/', '', substr($trip_id, 0, -8));
 
 $triplist[] = $trip_id;
 $query284   = "DELETE FROM trip WHERE trip_id='$trip_id';";
-$prikaz284  = mysqli_query($link, $query284);
-$query223   = "INSERT INTO trip (route_id, trip_id, trip_headsign, direction_id, shape_id, wheelchair_accessible, bikes_allowed, active, train_no) VALUES ('$route_id', '$trip_id', '$headsign', '$odd', '$trasa','0', '0', '1', '$newtrip');";
-$prikaz223  = mysqli_query($link, $query223);
+echo "$query284<br/>";
+$query223 = "INSERT INTO trip (route_id, trip_id, trip_headsign, direction_id, shape_id, wheelchair_accessible, bikes_allowed, active, train_no) VALUES ('$route_id', '$trip_id', '$headsign', '$odd', '$trasa','0', '0', '1', '$newtrip');";
+echo "$query223<br/>";
 
 $i = 0;
 foreach ($routes as $route_string) {
@@ -343,12 +343,12 @@ foreach ($routes as $route_string) {
 
     $wholename = "$min_name – $max_name";
 
-    $query125  = "DELETE FROM route WHERE route_id = '$route_id';";
-    $prikaz125 = mysqli_query($link, $query125);
+    $query125 = "DELETE FROM route WHERE route_id = '$route_id';";
+    echo "$query125<br/>";
 
-    $query108  = "INSERT INTO route (route_id, agency_id, route_short_name, route_long_name, route_type, route_color, route_text_color, active) VALUES ('$route_id', '$agency_id', '$shortname', '$wholename', '2', '$route_color', '$textcolor', '1');";
-    $prikaz108 = mysqli_query($link, $query108);
-    $i         = $i + 1;
+    $query108 = "INSERT INTO route (route_id, agency_id, route_short_name, route_long_name, route_type, route_color, route_text_color, active) VALUES ('$route_id', '$agency_id', '$shortname', '$wholename', '2', '$route_color', '$textcolor', '1');";
+    echo "$query108<br/>";
+    $i = $i + 1;
 }
 
 $matice = "";
@@ -376,16 +376,16 @@ for ($g = 0; $g < 406; $g++) {
 }
 
 foreach ($triplist as $trip_id) {
-    $skupina   = substr($trip_id, 0, -8);
-    $cisti388  = "DELETE FROM jizdy WHERE shortname = '$skupina' AND datum >= '$format_od' AND datum <= '$format_do';";
-    $prikaz388 = mysqli_query($link, $cisti388);
+    $skupina  = substr($trip_id, 0, -8);
+    $cisti388 = "DELETE FROM jizdy WHERE shortname = '$skupina' AND datum >= '$format_od' AND datum <= '$format_do';";
+    echo "$cisti388<br/>";
     for ($h = 0; $h < 406; $h++) {
         $tentoden  = $maticestart + ($h * 86400);
         $totodatum = date("Y-m-d", $tentoden);
 
         if ($matice[$h] == "1") {
-            $query188  = "INSERT INTO jizdy (shortname, trip_id, datum) VALUES ('$skupina','$trip_id','$totodatum');";
-            $prikaz188 = mysqli_query($link, $query188);
+            $query188 = "INSERT INTO jizdy (shortname, trip_id, datum) VALUES ('$skupina','$trip_id','$totodatum');";
+            echo "$query188<br/>";
         }
     }
 }

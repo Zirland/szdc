@@ -261,7 +261,8 @@ echo "<table><tr><td>";
 echo "<table>";
 echo "<tr>";
 
-$hlavicka      = mysqli_fetch_row(mysqli_query($link, "SELECT * FROM trip WHERE (trip_id='$trip');"));
+$hlavicka_query = "SELECT route_id, trip_id, trip_headsign, direction_id, shape_id, wheelchair_accessible, bikes_allowed, active FROM trip WHERE (trip_id='$trip');";
+$hlavicka      = mysqli_fetch_row(mysqli_query($link, $hlavicka_query));
 $linka         = $hlavicka[0];
 $trip_id       = $hlavicka[1];
 $trip_headsign = $hlavicka[2];
@@ -269,7 +270,7 @@ $smer          = $hlavicka[3];
 $shape         = $hlavicka[4];
 $invalida      = $hlavicka[5];
 $cyklo         = $hlavicka[6];
-$aktif         = $hlavicka[8];
+$aktif         = $hlavicka[7];
 $shortname     = substr($trip_id, 0, -8);
 
 echo "<td><a href = \"routeedit.php?id=$linka\">Zpět na linku</a><td>";
@@ -450,7 +451,6 @@ echo "</td></tr></table>";
 echo "JÍZDY<br/>";
 unset($datumy);
 $query419 = "SELECT datum FROM jizdy WHERE trip_id = '$trip_id';";
-echo "$query419<br/>";
 if ($result419 = mysqli_query($link, $query419)) {
     while ($row419 = mysqli_fetch_row($result419)) {
         $datumy[] = $row419[0];

@@ -16,7 +16,7 @@ function SelfCheck($Code)
     $j    = 1;
     $souc = 0;
     foreach ($arr as $num) {
-        if (($j % 2) == 1) {$num = (int)$num * 2;}
+        if (($j % 2) == 1) {$num = (int) $num * 2;}
         if ($num > 9) {
             $rozp = str_split($num, 1);
             $num  = $rozp[0] + $rozp[1];
@@ -67,6 +67,7 @@ $barvy = [
     "C1"   => "008000",
     "C2"   => "B51741",
     "C3"   => "0094DE",
+    "C4"   => "0094DE",
     ""     => "0094DE",
 ];
 
@@ -88,6 +89,12 @@ $commerce = [
     "9005" => "AEx",
     "9006" => "NJ",
     "9007" => "LET",
+
+    "11"   => "Os",
+    "C1"   => "Ex",
+    "C2"   => "R",
+    "C3"   => "Sp",
+    "C4"   => "",
     ""     => "",
 ];
 
@@ -98,16 +105,13 @@ if (!$link) {
     exit;
 }
 
-//$sync = exec('./sync.sh');
-
-//$files = glob("ftp.cisjr.cz/draha/celostatni/szdc/2018/*.xml");
-$files = glob("*.xml");
-usort($files, function ($a, $b) {return filemtime($a) > filemtime($b);});
+$sync  = exec('./sync.sh');
+$files = glob("ftp.cisjr.cz/draha/celostatni/szdc/2021/2021_10/*.xml");
+usort($files, function ($a, $b) {return filemtime($a) <=> filemtime($b);});
 
 if ($files) {
     foreach ($files as $file) {
-//        $nazev = substr($file, 40);
-        $nazev  = $file;
+        $nazev  = substr($file, 48);
         $handle = fopen($file, "r");
         $obsah  = fread($handle, filesize($file));
         fclose($handle);
@@ -126,26 +130,26 @@ if ($files) {
         $prev_route_id = $trip_id = $route_id = $headsign = $odd = $trasa = $route_color = "";
 
         foreach ($Locations as $locat) {
-            $CommercialTrafficType  = (string) $locat->CommercialTrafficType;
-            $TrafficType            = (string) $locat->TrafficType;
-            $OperationalTrainNumber = $locat->OperationalTrainNumber;
-            $shortname              = $OperationalTrainNumber;
-            $druh                   = $commerce[$CommercialTrafficType];
-            $shortnames[]           = $druh . $shortname;
-
-            $route_color = $barvy[$CommercialTrafficType];
-
-            if ($route_color == "") {
+            $TrafficType           = (string) $locat->TrafficType;
+            $CommercialTrafficType = (string) $locat->CommercialTrafficType;
+            if ($CommercialTrafficType != "") {
+                $route_color = $barvy[$CommercialTrafficType];
+                $druh        = $commerce[$CommercialTrafficType];
+            } else {
                 $route_color = $barvy[$TrafficType];
+                $druh        = $commerce[$TrafficType];
             }
 
+            $shortname = (string) $locat->OperationalTrainNumber;
             $textcolor = getContrastYIQ($route_color);
 
-            $routes[] = "$druh$shortname|$route_color|$textcolor";
+            if ($druh != "" || $shortname != "") {
+                $shortnames[] = $druh . $shortname;
+                $routes[]     = "$druh$shortname|$route_color|$textcolor";
+            }
         }
 
-        $routes = array_unique($routes);
-
+        $routes     = array_unique($routes);
         $shortnames = array_unique($shortnames);
 
         $StartPeriod = $xml->CZPTTInformation->PlannedCalendar->ValidityPeriod->StartDateTime;
@@ -155,7 +159,7 @@ if ($files) {
         if ($datumdo == "") {$datumdo = $datumod;}
 
         foreach ($shortnames as $shortname) {
-            switch (preg_replace("/\D+/", "", $shortname) % 2) {
+            switch ((int) preg_replace("/\D+/", "", $shortname) % 2) {
                 case "0":
                     $odd = "1";
                     break;
@@ -164,10 +168,9 @@ if ($files) {
                     break;
             }
 
-            $query167 = "INSERT INTO log(file, shortname, trip_id, datumod, datumdo, obsah) VALUES ('$nazev','$shortname','','$datumod','$datumdo', '$obsah');";
-            echo "$query167<br/>";
-            // $prikaz167 = mysqli_query($link, $query167);
-            $logid[] = mysqli_insert_id($link);
+            $query167  = "INSERT INTO log(file, shortname, trip_id, datumod, datumdo, obsah) VALUES ('$nazev','$shortname','','$datumod','$datumdo', '$obsah');";
+            $prikaz167 = mysqli_query($link, $query167);
+            $logid[]   = mysqli_insert_id($link);
         }
 
         $vznik1 = $logid[0];
@@ -184,37 +187,44 @@ if ($files) {
             $shortname      = $shortname_data[0];
             $trip_id        = $shortname . $Variant . $vznik;
 
-            $query172 = "UPDATE log SET trip_id = '$trip_id' WHERE id = '$log_id';";
-            echo "$query172<br/>";
-//            $prikaz172 = mysqli_query($link, $query172);
+            $query172  = "UPDATE log SET trip_id = '$trip_id' WHERE id = '$log_id';";
+            $prikaz172 = mysqli_query($link, $query172);
         }
 
-        $seq          = 0;
-        $prev_typ     = (string) $Locations[0]->CommercialTrafficType;
-        $prev_short   = $commerce[$prev_typ] . $Locations[0]->OperationalTrainNumber;
+        $seq                        = 0;
+        $prev_TrafficType           = (string) $Locations[0]->TrafficType;
+        $prev_CommercialTrafficType = (string) $Locations[0]->CommercialTrafficType;
+        if ($prev_CommercialTrafficType != "") {
+            $prev_typ = $commerce[$prev_CommercialTrafficType];
+        } else {
+            $prev_typ = $commerce[$prev_TrafficType];
+        }
+        $prev_short   = $prev_typ . $Locations[0]->OperationalTrainNumber;
         $prev_trip_id = $prev_short . $Variant . $vznik;
         $prev_skupina = $prev_short . $Variant;
-        $query199     = "SELECT route_id FROM linky WHERE skupina = '$prev_skupina';";
-        if ($result199 = mysqli_query($link, $query199)) {
-            while ($row199 = mysqli_fetch_row($result199)) {
-                $prev_route_id = $row199[0];
-            }
-        }
-        if ($prev_route_id == "") {
-            $prev_route_id = "K" . $prev_trip_id;
-        }
 
         foreach ($Locations as $lokace) {
-            $seq            = $seq + 1;
-            $Country        = (string) $lokace->Location->CountryCodeISO;
-            $LocCode        = $lokace->Location->LocationPrimaryCode;
-            $LocName        = $lokace->Location->PrimaryLocationName;
-            $com_train_type = (string) $lokace->CommercialTrafficType;
+            $seq     = $seq + 1;
+            $Country = (string) $lokace->CountryCodeISO;
+            if ($Country != "") {
+                $LocCode = $lokace->LocationPrimaryCode;
+                $LocName = $lokace->PrimaryLocationName;
+            } else {
+                $Country = (string) $lokace->Location->CountryCodeISO;
+                $LocCode = $lokace->Location->LocationPrimaryCode;
+                $LocName = $lokace->Location->PrimaryLocationName;
+            }
             $train_type     = (string) $lokace->TrafficType;
+            $com_train_type = (string) $lokace->CommercialTrafficType;
             $shortname      = $lokace->OperationalTrainNumber;
-            $trip_id        = $commerce[$com_train_type] . $shortname . $Variant . $vznik;
-            $Dwell          = $lokace->TimingAtLocation->DwellTime;
-            $KontrCis       = SelfCheck($LocCode);
+            if ($com_train_type != "" && $shortname != "") {
+                $trip_id = $commerce[$com_train_type] . $shortname . $Variant . $vznik;
+            } else if ($shortname != "") {
+                $trip_id = $commerce[$train_type] . $shortname . $Variant . $vznik;
+            }
+
+            $Dwell    = $lokace->TimingAtLocation->DwellTime;
+            $KontrCis = SelfCheck($LocCode);
 
             $countrcode = $staty[$Country];
 
@@ -227,18 +237,20 @@ if ($files) {
             $prijezd = 0;
             $odjezd  = 0;
             $Timing  = $lokace->TimingAtLocation->Timing;
-            foreach ($Timing as $cas) {
-                $TypCasu = $cas->attributes()->TimingQualifierCode;
-                $Hodnota = $cas->Time;
-                $Offset  = $cas->Offset;
+            if ($Timing) {
+                foreach ($Timing as $cas) {
+                    $TypCasu = $cas->attributes()->TimingQualifierCode;
+                    $Hodnota = $cas->Time;
+                    $Offset  = $cas->Offset;
 
-                $Hodnota_hod  = substr($Hodnota, 0, 2);
-                $Hodnota_rest = substr($Hodnota, 2, 6);
-                $Hodnota_hod  = ($Offset * 24) + $Hodnota_hod;
-                if ($Hodnota_hod < 10) {$Hodnota_hod = "0" . $Hodnota_hod;}
-                $Hodnota = $Hodnota_hod . $Hodnota_rest;
-                if ($TypCasu == "ALA") {$prijezd = $Hodnota;}
-                if ($TypCasu == "ALD") {$odjezd = $Hodnota;}
+                    $Hodnota_hod  = substr($Hodnota, 0, 2);
+                    $Hodnota_rest = substr($Hodnota, 2, 6);
+                    $Hodnota_hod  = ($Offset * 24) + $Hodnota_hod;
+                    if ($Hodnota_hod < 10) {$Hodnota_hod = "0" . $Hodnota_hod;}
+                    $Hodnota = $Hodnota_hod . $Hodnota_rest;
+                    if ($TypCasu == "ALA") {$prijezd = $Hodnota;}
+                    if ($TypCasu == "ALD") {$odjezd = $Hodnota;}
+                }
             }
             if ($prijezd == "0" || $Offset < 0) {$prijezd = $odjezd;}
             if ($odjezd == "0") {$odjezd = $prijezd;}
@@ -257,26 +269,26 @@ if ($files) {
                     break;
             }
 
-            $query214 = "INSERT INTO stoptime (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled, timepoint) VALUES ('$trip_id','$prijezd','$odjezd','$stop_id','$seq', '','$nastup','$vystup','','');";
+            $query214 = "INSERT INTO stoptime (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled, timepoint) VALUES ('$trip_id','$prijezd','$odjezd','$stop_id','$seq', '','$nastup','$vystup',0,0);";
             if ((($TrainActivity == "CZ02" || $TrainActivity == "0030" || $TrainActivity == "0001") || ($Dwell > 0)) && ($train_type == "11" || $train_type == "C1" || $train_type == "C2" || $train_type == "C3")) {
-                echo "$query214 = $LocName<br/>";
-//                $prikaz214 = mysqli_query($link, $query214);
+                $prikaz214 = mysqli_query($link, $query214);
             }
             $headsign = $LocName;
 
             if ($trip_id != $prev_trip_id) {
-                $newtrip    = preg_replace('/\D+/', '', substr($trip_id, 0, -8));
-                $triplist[] = $prev_trip_id;
-                $query223   = "INSERT INTO trip (route_id, trip_id, trip_headsign, direction_id, shape_id, wheelchair_accessible, bikes_allowed, active, train_no) VALUES ('$prev_route_id', '$prev_trip_id', '$headsign', '$odd', '$trasa','0', '0', '1', '$newtrip');";
-                echo "$query223<br/>";
-//                $prikaz223 = mysqli_query($link, $query223);
+                $newtrip       = preg_replace('/\D+/', '', substr($prev_trip_id, 0, -8));
+                $triplist[]    = $prev_trip_id;
+                $prev_route_id = "K" . $prev_trip_id;
+                $query284      = "DELETE FROM trip WHERE trip_id='$prev_trip_id';";
+                $prikaz284     = mysqli_query($link, $query284);
+                $query223      = "INSERT INTO trip (route_id, trip_id, trip_headsign, direction_id, shape_id, wheelchair_accessible, bikes_allowed, active, train_no) VALUES ('$prev_route_id', '$prev_trip_id', '$headsign', '$odd', '$trasa','0', '0', '1', '$newtrip');";
+                $prikaz223     = mysqli_query($link, $query223);
 
-                $query295 = "INSERT INTO stoptime (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled, timepoint) VALUES ('$prev_trip_id','$prijezd','$odjezd','$stop_id','$seq', '','$nastup','$vystup','','');";
-                echo "$query295 = $LocName<br/>";
-//                $prikaz295 = mysqli_query($link, $query295);
-                $query298 = "UPDATE trip SET headsign = '$headsign' WHERE trip_id = '$prev_trip_id';";
-                echo "$query298<br/>";
-//                $prikaz295 = mysqli_query($link, $query298);
+                $query295  = "INSERT INTO stoptime (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled, timepoint) VALUES ('$prev_trip_id','$prijezd','$odjezd','$stop_id','$seq', '','$nastup','$vystup',0,0);";
+                $prikaz295 = mysqli_query($link, $query295);
+
+                $query298  = "UPDATE trip SET trip_headsign = '$headsign' WHERE trip_id = '$prev_trip_id';";
+                $prikaz295 = mysqli_query($link, $query298);
 
                 $trasa = "$stop_id|";
 
@@ -299,9 +311,11 @@ if ($files) {
         $newtrip = preg_replace('/\D+/', '', substr($trip_id, 0, -8));
 
         $triplist[] = $trip_id;
+        $query284   = "DELETE FROM trip WHERE trip_id='$trip_id';";
+        $prikaz284  = mysqli_query($link, $query284);
         $query223   = "INSERT INTO trip (route_id, trip_id, trip_headsign, direction_id, shape_id, wheelchair_accessible, bikes_allowed, active, train_no) VALUES ('$route_id', '$trip_id', '$headsign', '$odd', '$trasa','0', '0', '1', '$newtrip');";
-        echo "$query223<br/>";
-//        $prikaz223 = mysqli_query($link, $query223);
+        $prikaz223  = mysqli_query($link, $query223);
+
         $i = 0;
         foreach ($routes as $route_string) {
             $wholename   = "";
@@ -337,14 +351,12 @@ if ($files) {
 
             $wholename = "$min_name – $max_name";
 
-            $query125 = "DELETE FROM route WHERE route_id = '$route_id';";
-            echo "$query125<br/>";
-//          $prikaz125 = mysqli_query($link, $query125);
+            $query125  = "DELETE FROM route WHERE route_id = '$route_id';";
+            $prikaz125 = mysqli_query($link, $query125);
 
-            $query108 = "INSERT INTO route (route_id, agency_id, route_short_name, route_long_name, route_type, route_color, route_text_color, active) VALUES ('$route_id', '$agency_id', '$shortname', '$wholename', '2', '$route_color', '$textcolor', '1');";
-            echo "$query108<br/>";
-//            $prikaz108 = mysqli_query($link, $query108);
-            $i = $i + 1;
+            $query108  = "INSERT INTO route (route_id, agency_id, route_short_name, route_long_name, route_type, route_color, route_text_color, active) VALUES ('$route_id', '$agency_id', '$shortname', '$wholename', '2', '$route_color', '$textcolor', '1');";
+            $prikaz108 = mysqli_query($link, $query108);
+            $i         = $i + 1;
         }
 
         $matice = "";
@@ -372,24 +384,21 @@ if ($files) {
         }
 
         foreach ($triplist as $trip_id) {
-            $skupina  = substr($trip_id, 0, -6);
-            $cisti388 = "DELETE FROM jizdy WHERE shortname = '$skupina' AND datum >= '$format_od' AND datum <= '$format_do';";
-            echo "$cisti388<br/>";
-//            $prikaz388 = mysqli_query($link, $cisti388);
+            $skupina   = substr($trip_id, 0, -8);
+            $cisti388  = "DELETE FROM jizdy WHERE shortname = '$skupina' AND datum >= '$format_od' AND datum <= '$format_do';";
+            $prikaz388 = mysqli_query($link, $cisti388);
             for ($h = 0; $h < 406; $h++) {
                 $tentoden  = $maticestart + ($h * 86400);
                 $totodatum = date("Y-m-d", $tentoden);
 
                 if ($matice[$h] == "1") {
-                    $query188 = "INSERT INTO jizdy (shortname, trip_id, datum) VALUES ('$skupina','$trip_id','$totodatum');";
-                    echo "$query188<br/>";
-//                    $prikaz188 = mysqli_query($link, $query188);
+                    $query188  = "INSERT INTO jizdy (shortname, trip_id, datum) VALUES ('$skupina','$trip_id','$totodatum');";
+                    $prikaz188 = mysqli_query($link, $query188);
                 }
             }
         }
 
-//        unlink($file);
-        echo "unlink $file<br/>";
+        unlink($file);
     }
 }
 

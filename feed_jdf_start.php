@@ -20,6 +20,7 @@ if ($result69 = mysqli_query($link, $akt_route)) {
         $route_text_color = $row69[6];
         $routenums        = mysqli_num_rows($result69);
 
+        $route_short_name = preg_replace("/(\D+)(\d+)/", "\\1 \\2", substr($route_id, 1, -8));
         $current .= "$route_id,$agency_id,\"$route_short_name\",\"$route_long_name\",$route_type,$route_color,$route_text_color\n";
 
         $useag_query = "INSERT INTO ag_use VALUES ('$route_id','$agency_id');";
