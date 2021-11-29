@@ -29,17 +29,6 @@ if ($result40 = mysqli_query($link, $query40)) {
 	}
 }
 
-$query27 = "SELECT id FROM linky LEFT OUTER JOIN (SELECT MAX(id) as RowId, skupina FROM linky GROUP BY skupina) as KeepRows ON linky.id = KeepRows.RowId WHERE KeepRows.RowId IS NULL;";
-if ($result27 = mysqli_query($link, $query27)) {
-	while ($row27 = mysqli_fetch_row($result27)) {
-		$id = $row27[0];
-
-		$query32 = "DELETE FROM linky WHERE id = '$id';";
-//		echo "22: $query32<br/>";
-		$prikaz32 = mysqli_query($link, $query32);
-	}
-}
-
 $query14 = "SELECT trip_id FROM trip WHERE trip_id NOT IN (SELECT DISTINCT trip_id FROM jizdy);";
 if ($result14 = mysqli_query($link, $query14)) {
 	while ($row14 = mysqli_fetch_row($result14)) {
@@ -77,6 +66,6 @@ $query98 = "DELETE FROM log WHERE shortname='';";
 $prikaz98 = mysqli_query($link, $query98);
 
 $query79 = "DELETE FROM route WHERE route_id LIKE 'K%' AND active=0;";
-$prikaz79 = mysqli_query($link, $query79);
+//$prikaz79 = mysqli_query($link, $query79);
 mysqli_close ($link);
 ?>

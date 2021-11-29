@@ -1,23 +1,33 @@
 <?php
-$link = mysqli_connect('localhost', 'root', 'root', 'SZDC');
+$link = mysqli_connect('localhost', 'root', 'root', 'vlaky');
 if (!$link) {
     echo "Error: Unable to connect to MySQL." . PHP_EOL;
     echo "Debugging errno: " . mysqli_connect_errno() . PHP_EOL;
     exit;
 }
 
-$query9 = "SELECT trip_id FROM trip;";
+unset($seznam);
+
+$query9 = "SELECT route_id, agency_id FROM route WHERE active=0 AND route_id LIKE 'K%' AND route_id LIKE '%~%';";
 if ($result9 = mysqli_query($link, $query9)) {
     while ($row9 = mysqli_fetch_row($result9)) {
-        $trip_id = $row9[0];
+        $route_id  = $row9[0];
+        $agency_id = $row9[1];
 
-        $newtrip = preg_replace('/\D+/', '', substr($trip_id, 0, -8));
-
-        $query16 = "UPDATE trip SET train_no = '$newtrip' WHERE trip_id = '$trip_id';";
-        $prikaz16 = mysqli_query($link, $query16);
+        $split_route = explode("~", $route_id);
+        $linka       = substr($split_route[1], 0, -8);
+        $seznam[]    = "$linka | $agency_id";
     }
 }
 
+$seznam = array_unique($seznam);
+sort($seznam);
+
+foreach ($seznam as $radek) {
+    echo "$radek<br/>";
+}
+
+echo "<br/>";
 echo "Hotovo...";
 
 mysqli_close($link);

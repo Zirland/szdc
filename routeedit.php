@@ -80,7 +80,8 @@ if ($result80 = mysqli_query ($link, $query80)) {
 	while ($row80 = mysqli_fetch_row ($result80)) {
 		$trip_id = $row80[0];
 		$trip_headsign = $row80[1];
-		$vlak = substr($trip_id, 0, -8);
+		$trip_split = explode("~", $trip_id);
+		$vlak = $trip_split[0];
 		$trip_aktif = $row80[2];
 
 		$query15 = "SELECT stop_name FROM stop WHERE stop_id IN (SELECT stop_id FROM stoptime WHERE trip_id = '$trip_id' AND stop_sequence IN (SELECT min(stop_sequence) FROM stoptime WHERE (trip_id = '$trip_id')));";
@@ -120,7 +121,8 @@ if ($result96 = mysqli_query ($link, $query96)) {
 	while ($row96 = mysqli_fetch_row ($result96)) {
 		$trip_id = $row96[0];
 		$trip_headsign = $row96[1];
-		$vlak = substr($trip_id, 0, -8);
+		$trip_split = explode("~", $trip_id);
+		$vlak = $trip_split[0];
 		$trip_aktif = $row96[2];
 
 		$query15 = "SELECT stop_name FROM stop WHERE stop_id IN (SELECT stop_id FROM stoptime WHERE trip_id = '$trip_id' AND stop_sequence IN (SELECT min(stop_sequence) FROM stoptime WHERE (trip_id = '$trip_id')));";

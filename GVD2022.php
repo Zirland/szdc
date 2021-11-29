@@ -105,7 +105,7 @@ if (!$link) {
     exit;
 }
 
-$files = glob("ftp.cisjr.cz/draha/celostatni/szdc/2021/2021-11/*.xml");
+$files = glob("ftp.cisjr.cz/draha/celostatni/szdc/2022/GVD2022/*.xml");
 usort($files, function ($a, $b) {return filemtime($a) <=> filemtime($b);});
 
 $pocet    = count($files);
@@ -113,8 +113,7 @@ $maxpocet = $pocet - 1;
 
 echo "Working on $pocet files<br/>";
 if ($pocet > 0) {
-    $i = $maxpocet;
-    //   $i     = 0;
+    $i     = 0;
     $file  = $files[$i];
     $nazev = substr($file, 48);
     echo "File: $nazev<br/>";
@@ -508,7 +507,7 @@ if ($pocet > 0) {
 
 if ($pocet > 0) {
  //   echo "<a href=\"unlink.php\">Continue</a>";
-    echo "<meta http-equiv=\"refresh\" content=\"1;url='unlink.php'\">";
+    echo "<meta http-equiv=\"refresh\" content=\"1;url='unlink2022.php'\">";
 }
 
 mysqli_close($link);

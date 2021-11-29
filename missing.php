@@ -12,5 +12,16 @@ if ($result = mysqli_query ($link, $query)) {
 	}
 }
 
+echo "== MISSING ROUTES ==<br/>";
+
+$query17 = "SELECT DISTINCT route_id FROM trip WHERE route_id NOT IN (SELECT route_id FROM route) ORDER BY route_id;";
+if ($result17 = mysqli_query($link, $query17)) {
+	while ($row17 = mysqli_fetch_row($result17)) {
+		$miss_route = $row17[0];
+
+		echo "$miss_route<br/>";
+	}
+}
+
 include 'footer.php';
 ?>
