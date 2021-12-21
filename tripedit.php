@@ -262,6 +262,7 @@ echo "<table>";
 echo "<tr>";
 
 $hlavicka_query = "SELECT route_id, trip_id, trip_headsign, direction_id, shape_id, wheelchair_accessible, bikes_allowed, active FROM trip WHERE (trip_id='$trip');";
+echo "$hlavicka_query<br/>";
 $hlavicka      = mysqli_fetch_row(mysqli_query($link, $hlavicka_query));
 $linka         = $hlavicka[0];
 $trip_id       = $hlavicka[1];
@@ -451,6 +452,7 @@ echo "</td></tr></table>";
 echo "JÍZDY<br/>";
 unset($datumy);
 $query419 = "SELECT datum FROM jizdy WHERE trip_id = '$trip_id';";
+echo "$query419<br/>";
 if ($result419 = mysqli_query($link, $query419)) {
     while ($row419 = mysqli_fetch_row($result419)) {
         $datumy[] = $row419[0];

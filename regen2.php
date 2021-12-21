@@ -282,9 +282,14 @@ switch ($type) {
                 $vystup = 3;
             }
 
-            $query214 = "INSERT INTO stoptime (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled, timepoint) VALUES ('$trip_id','$prijezd','$odjezd','$stop_id','$seq', '','$nastup','$vystup',0,0);";
+            if ($odjezd < $prijezd) {
+                $new_prijezd = $odjezd;
+            } else {
+                $new_prijezd = $prijezd;
+            }
+            $query214 = "INSERT INTO stoptime (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled, timepoint) VALUES ('$trip_id','$new_prijezd','$odjezd','$stop_id','$seq', '','$nastup','$vystup',0,0);";
             if (((in_array('0001', $Activities)) || (in_array('0030', $Activities))) && ($train_type == "11" || $train_type == "C1" || $train_type == "C2" || $train_type == "C3")) {
-                echo "$query214 = $LocName<br/>";
+                echo "287: $query214 = $LocName<br/>";
             }
             $headsign = $LocName;
 
@@ -295,15 +300,21 @@ switch ($type) {
                 if (substr($prev_route_split[1], 0, -8) != "") {
                     $prev_route_id = substr($prev_route_split[1], 0, -8);
                 }
-                $newtrip = preg_replace('/\D+/', '', $prev_route_split[0]);
-
+                $newtrip  = preg_replace('/\D+/', '', $prev_route_split[0]);
                 $query284 = "DELETE FROM trip WHERE trip_id='$prev_trip_id';";
                 echo "$query284<br/>";
                 $query223 = "INSERT INTO trip (route_id, trip_id, trip_headsign, direction_id, shape_id, wheelchair_accessible, bikes_allowed, active, train_no, block_id) VALUES ('$prev_route_id', '$prev_trip_id', '$headsign', '$odd', '$trasa','0', '0', '1', '$newtrip', '$block');";
                 echo "$query223<br/>";
 
-                $query295 = "INSERT INTO stoptime (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled, timepoint) VALUES ('$prev_trip_id','$prijezd','$odjezd','$stop_id','$seq', '','$nastup','$vystup',0,0);";
-                echo "$query295 = $LocName<br/>";
+                if ($odjezd < $prijezd) {
+                    $new_odjezd = $prijezd;
+                } else {
+                    $new_odjezd = $odjezd;
+                }
+                if (((in_array('0001', $Activities)) || (in_array('0030', $Activities))) && ($train_type == "11" || $train_type == "C1" || $train_type == "C2" || $train_type == "C3")) {
+                    $query295 = "INSERT INTO stoptime (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled, timepoint) VALUES ('$prev_trip_id','$prijezd','$new_odjezd','$stop_id','$seq', '','$nastup','$vystup',0,0);";
+                    echo "306: $query295 = $LocName<br/>";
+                }
 
                 $query298 = "UPDATE trip SET trip_headsign = '$headsign' WHERE trip_id = '$prev_trip_id';";
                 echo "$query298<br/>";

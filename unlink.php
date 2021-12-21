@@ -1,5 +1,5 @@
 <?php
-$files = glob("ftp.cisjr.cz/draha/celostatni/szdc/2021/2021-11/*.xml");
+$files = glob("ftp.cisjr.cz/draha/celostatni/szdc/2022/2021-12/*.xml");
 usort($files, function ($a, $b) {return filemtime($a) <=> filemtime($b);});
 
 $index = count($files) - 1;

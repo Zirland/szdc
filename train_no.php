@@ -16,7 +16,7 @@ if ($result9 = mysqli_query($link, $query9)) {
 
         $split_route = explode("~", $route_id);
         $linka       = substr($split_route[1], 0, -8);
-        $seznam[]    = "$linka | $agency_id";
+        $seznam[]    = "$linka | $agency_id | $route_id"; //
     }
 }
 

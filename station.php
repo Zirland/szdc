@@ -8,7 +8,7 @@ $smer = @$_POST['smer'];
 echo "<form method=\"post\" action=\"station.php\" name=\"filtr\">
 	<input name=\"action\" value=\"filtr\" type=\"hidden\">";
 	echo "<select name=\"filtr\">";
-	$query0 = "SELECT stop_id, stop_name FROM stop WHERE active=1 ORDER BY stop_name;";
+	$query0 = "SELECT stop_id, stop_name FROM stop WHERE stop_id IN (SELECT DISTINCT stop_id FROM stoptime) ORDER BY stop_name;";
 	if ($result0 = mysqli_query ($link, $query0)) {
 		while ($row0 = mysqli_fetch_row ($result0)) {
 			$kod = $row0[0];

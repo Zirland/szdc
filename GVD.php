@@ -105,7 +105,7 @@ if (!$link) {
     exit;
 }
 
-$files = glob("ftp.cisjr.cz/draha/celostatni/szdc/2021/2021-11/*.xml");
+$files = glob("ftp.cisjr.cz/draha/celostatni/szdc/2022/2021-12/*.xml");
 usort($files, function ($a, $b) {return filemtime($a) <=> filemtime($b);});
 
 $pocet    = count($files);
@@ -114,7 +114,7 @@ $maxpocet = $pocet - 1;
 echo "Working on $pocet files<br/>";
 if ($pocet > 0) {
     $i = $maxpocet;
-    //   $i     = 0;
+    //    $i     = 0;
     $file  = $files[$i];
     $nazev = substr($file, 48);
     echo "File: $nazev<br/>";
@@ -298,9 +298,14 @@ if ($pocet > 0) {
                     $vystup = 3;
                 }
 
-                $query214 = "INSERT INTO stoptime (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled, timepoint) VALUES ('$trip_id','$prijezd','$odjezd','$stop_id','$seq', '','$nastup','$vystup',0,0);";
+                if ($odjezd < $prijezd) {
+                    $new_prijezd = $odjezd;
+                } else {
+                    $new_prijezd = $prijezd;
+                }
+                $query214 = "INSERT INTO stoptime (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled, timepoint) VALUES ('$trip_id','$new_prijezd','$odjezd','$stop_id','$seq', '','$nastup','$vystup',0,0);";
                 if (((in_array('0001', $Activities)) || (in_array('0030', $Activities))) && ($train_type == "11" || $train_type == "C1" || $train_type == "C2" || $train_type == "C3")) {
-                    echo "$query214 = $LocName<br/>";
+                    echo "287: $query214 = $LocName<br/>";
                     $prikaz214 = mysqli_query($link, $query214);
                 }
                 $headsign = $LocName;
@@ -312,7 +317,7 @@ if ($pocet > 0) {
                     if (substr($prev_route_split[1], 0, -8) != "") {
                         $prev_route_id = substr($prev_route_split[1], 0, -8);
                     }
-                    $newtrip = preg_replace('/\D+/', '', $prev_route_split[0]);
+                    $newtrip  = preg_replace('/\D+/', '', $prev_route_split[0]);
                     $query284 = "DELETE FROM trip WHERE trip_id='$prev_trip_id';";
                     // echo "$query284<br/>";
                     $prikaz284 = mysqli_query($link, $query284);
@@ -320,9 +325,16 @@ if ($pocet > 0) {
                     // echo "$query223<br/>";
                     $prikaz223 = mysqli_query($link, $query223);
 
-                    $query295 = "INSERT INTO stoptime (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled, timepoint) VALUES ('$prev_trip_id','$prijezd','$odjezd','$stop_id','$seq', '','$nastup','$vystup',0,0);";
-                    echo "$query295 = $LocName<br/>";
-                    $prikaz295 = mysqli_query($link, $query295);
+                    if ($odjezd < $prijezd) {
+                        $new_odjezd = $prijezd;
+                    } else {
+                        $new_odjezd = $odjezd;
+                    }
+                    if (((in_array('0001', $Activities)) || (in_array('0030', $Activities))) && ($train_type == "11" || $train_type == "C1" || $train_type == "C2" || $train_type == "C3")) {
+                        $query295 = "INSERT INTO stoptime (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled, timepoint) VALUES ('$prev_trip_id','$new_prijezd','$odjezd','$stop_id','$seq', '','$nastup','$vystup',0,0);";
+                        echo "306: $query295 = $LocName<br/>";
+                        $prikaz295 = mysqli_query($link, $query295);
+                    }
 
                     $query298 = "UPDATE trip SET trip_headsign = '$headsign' WHERE trip_id = '$prev_trip_id';";
                     // echo "$query295<br/>";
@@ -460,6 +472,8 @@ if ($pocet > 0) {
             $datumdo     = substr($EndPeriod, 0, 4) . substr($EndPeriod, 5, 2) . substr($EndPeriod, 8, 2);
             if ($datumdo == "") {$datumdo = $datumod;}
 
+            $shortnames = array_filter($shortnames);
+
             foreach ($shortnames as $shortname) {
                 $query167  = "INSERT INTO log(file, shortname, trip_id, datumod, datumdo, obsah) VALUES ('$nazev','$shortname','','$datumod','$datumdo', '$obsah');";
                 $prikaz167 = mysqli_query($link, $query167);
@@ -507,7 +521,7 @@ if ($pocet > 0) {
 }
 
 if ($pocet > 0) {
- //   echo "<a href=\"unlink.php\">Continue</a>";
+    //   echo "<a href=\"unlink.php\">Continue</a>";
     echo "<meta http-equiv=\"refresh\" content=\"1;url='unlink.php'\">";
 }
 
