@@ -31,6 +31,9 @@ function SelfCheck($Code)
     return $kontr;
 }
 
+$files = glob("ftp.cisjr.cz/draha/celostatni/szdc/2022/2022-01/*.xml");
+usort($files, function ($a, $b) {return filemtime($a) <=> filemtime($b);});
+
 $staty = [
     "AT" => "81",
     "BY" => "21",
@@ -104,9 +107,6 @@ if (!$link) {
     echo "Reason: " . mysqli_connect_error() . PHP_EOL;
     exit;
 }
-
-$files = glob("ftp.cisjr.cz/draha/celostatni/szdc/2022/2021-12/*.xml");
-usort($files, function ($a, $b) {return filemtime($a) <=> filemtime($b);});
 
 $pocet    = count($files);
 $maxpocet = $pocet - 1;
